@@ -1,5 +1,5 @@
 import './style.css'
-import { restartGame, renderGame } from "./game.js";
+import { startGame } from "./game.js";
 
 document.querySelector('#app').innerHTML = `
   <div id="game">
@@ -8,8 +8,5 @@ document.querySelector('#app').innerHTML = `
 
 
 window.addEventListener("load", () => {
-  restartGame();
-  window.requestAnimationFrame(() => {
-    renderGame();
-  });
+  startGame();
 });

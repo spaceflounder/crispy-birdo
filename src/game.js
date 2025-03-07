@@ -3,6 +3,13 @@
 const fieldWidth = 10;
 const fieldHeight = 20;
 
+const controlDelay = 10;
+
+const gamePadReleased = {
+    'start': 0,
+    'enter': 0,
+}
+
 
 const shapeModels = [
     [
@@ -372,13 +379,15 @@ function updateGame() {
     }
 
     if (game.dropAction) {
-        for (let y = 0; y < fieldHeight; y++) {
-            game.y++;
-            if (checkPieceLanded() || !checkThatShapeIsValid()) {
-                game.y--;
-                addPieceToField();
-                break;
-            }    
+        game.dropping = true;
+    }
+
+    if (game.dropping) {
+        game.y++;
+        if (!checkThatShapeIsValid()) {
+            game.y--;
+            addPieceToField();
+            game.dropping = false;
         }
     }
 
@@ -550,7 +559,7 @@ function renderScore() {
 }
 
 
-export function renderGame() {
+function renderGame() {
 
     if (!game.pauseAction && !game.animation) {
 
@@ -568,12 +577,17 @@ export function renderGame() {
 
     window.requestAnimationFrame(() => {
         renderGame();
+        if (game.waitForControl > 0) {
+            game.waitForControl--;
+        } else {
+            pollGamepads();
+        }
     });
 
 }
 
 
-export function restartGame() {
+function restartGame() {
 
 
     const gameContainer = document.getElementById('game');
@@ -608,9 +622,12 @@ export function restartGame() {
 
     game.pieceTraded = false;
 
+    game.waitForControl = controlDelay;
+
     game.x = 3;
     game.y = 5;
     game.dropRate = 60;
+    game.dropping = false;
 
     game.animation = 0;
 
@@ -636,8 +653,114 @@ export function restartGame() {
     scoreContainer.classList.add('score-panel');
     gameContainer.appendChild(scoreContainer);
 
+}
+
+
+function pollGamepads() {
+    const gamepads = navigator.getGamepads();
+    for (const gamepad of gamepads) {
+        if (gamepad) {
+            handleGamepadInput(gamepad);
+        }
+    }
+}
+
+function handleGamepadInput(gamepad) {
+
+    if (game.waitForControl > 0) {
+        return;
+    }
+
+    if (gamepad.buttons[0].pressed) { // Button A (typically)
+        game.rotateAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+    if (gamepad.buttons[3].pressed) {
+        game.dropAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+    if (gamepad.buttons[14].pressed) { // D-pad left
+        game.leftAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+    if (gamepad.buttons[15].pressed) { // D-pad right
+        game.rightAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+    if (gamepad.buttons[13].pressed) { // D-pad down
+        game.downAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+
+    if (gamepad.buttons[1].pressed) { // Button B (typically)
+        game.tradePieceAction = true;
+        game.waitForControl = controlDelay * 2;
+    }
+
+    if (gamepad.buttons[9].pressed) { // Start button (typically)
+        gamePadReleased.start = 1;
+    } else {
+        if (gamePadReleased.start === 1) {
+            if (game.awaitStartGame) {
+                beginGame();
+            } else if (game.awaitNewGame) {
+                restartGame();
+            } else {
+                game.pauseAction = !game.pauseAction;
+            }
+            gamePadReleased.start = 0;
+        }
+    }
+
+    // Example: Check joystick axes (e.g., left stick)
+    const leftStickX = gamepad.axes[0]; // -1 (left) to 1 (right)
+    const leftStickY = gamepad.axes[1]; // -1 (up) to 1 (down)
+
+    if (leftStickX < -0.5) {
+        game.leftAction = true;
+    } else if (leftStickX > 0.5) {
+        game.rightAction = true;
+    }
+
+    if (leftStickY < -0.5) {
+        game.downAction = true;
+    }
+}
+
+
+function awaitEnterPress() {
+    const gameContainer = document.getElementById('game');
+    const textContainer = document.createElement('div');
+    textContainer.id = 'start-game-text';
+    textContainer.textContent = 'Press Enter to start';
+    textContainer.classList.add('start-game-text');
+    game.awaitStartGame = true;
+    gameContainer.appendChild(textContainer);
+}
+
+
+function beginGame() {
+    game.awaitStartGame = false;
+    const gameStartText = document.getElementById('start-game-text');
+    gameStartText.remove();
+    game.animation = false;
+}
+
+
+export function startGame() {
+
+    // wait until enter is pressed before starting game
+
+    restartGame();
+    awaitEnterPress();
+    renderGame();
+    game.animation = true;
     window.addEventListener('keydown', (event) => {
         event.preventDefault();
+        if (game.waitForControl > 0) {
+            return;
+        }
+        game.waitForControl = controlDelay;
         switch (event.key) {
             case 'ArrowLeft':
                 game.leftAction = true;
@@ -670,9 +793,12 @@ export function restartGame() {
             case 'ENTER':
                 if (game.awaitNewGame) {
                     restartGame();
+                } else if (game.awaitStartGame) {
+                    beginGame();
                 }
                 break;
         }
     });
 
 }
+

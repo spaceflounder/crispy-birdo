@@ -80,6 +80,27 @@ body {
 }
 
 
+.start-game-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 95vw;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  opacity: 1;
+  animation: fade-in 1.5s ease-in;
+  z-index: 1000;
+  font-size: 5em;
+  color: #646cff;
+  text-align: center;
+  -webkit-text-stroke:2px black;
+}
+
+
 .score-text {
   font-size: 1.5em;
   font-weight: 500;
