@@ -22,10 +22,10 @@ const gamePadReleased = {
 
 const shapeModels = [
     [
-        '0010',
-        '0010',
-        '0010',
-        '0010',
+        '1111',
+        '0000',
+        '0000',
+        '0000',
     ],
     [
         '0100',
@@ -78,6 +78,22 @@ const colors = [
 ];
 
 
+const wallKickData = {
+    JLSTZ: [
+        [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]], // 0->R
+        [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],    // R->2
+        [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],   // 2->L
+        [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]]  // L->0
+    ],
+    I: [
+        [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],  // 0->R
+        [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],  // R->2
+        [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],  // 2->L
+        [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]   // L->0
+    ]
+};
+
+
 let game = {};
 
 
@@ -92,74 +108,55 @@ function getRandomShape() {
 }
 
 
+
 function rotateShape() {
-    // Create a copy of the current piece
     const originalPiece = game.piece;
     const rotatedPiece = originalPiece[0].map((_, index) => 
         originalPiece.map(row => row[index]).reverse()
     );
 
-    // Save the current piece state in case the rotation is invalid
     const previousPiece = [...game.piece];
+    const previousX = game.x;
+    const previousY = game.y;
+    const previousRotationState = game.rotationState;
 
-    // Update the piece to the rotated version
     game.piece = rotatedPiece;
+    game.rotationState = (game.rotationState + 1) % 4;
 
-    // Check if the rotated piece is valid
-    if (!checkThatShapeIsValid()) {
-        const isLeft = Math.floor(game.x < fieldWidth / 2);
-        if (isLeft) {
-            for (let i = 0; i < 20; ++i) {
-                if (!checkThatShapeIsValid()) {
-                    game.x++;
-                } else {
-                    break;
-                }
-            }
-        } else {
-            for (let i = 0; i < 20; ++i) {
-                if (!checkThatShapeIsValid()) {
-                    game.x--;
-                } else {
-                    break;
-                }
-            }
+    const wallKicks = (game.piece === shapeModels[0]) ? wallKickData.I : wallKickData.JLSTZ;
+    const kicks = wallKicks[previousRotationState];
+
+    for (const [x, y] of kicks) {
+        game.x += x;
+        game.y += y;
+
+        if (checkThatShapeIsValid()) {
+            return;
         }
-        return;
+
+        game.x = previousX;
+        game.y = previousY;
     }
-    
+
+    // If no kick works, revert the rotation
+    game.piece = previousPiece;
+    game.rotationState = previousRotationState;
 }
 
 
 function checkThatShapeIsValid() {
-
-    // check that shape is inside the field
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (game.piece[y][x]) {
                 const gx = game.x + x;
                 const gy = game.y + y;
-                if (gx < leftBorder) {
-                    return false;
-                }
-                if (gx >= rightBorder) {
-                    return false;
-                }
-                if (gy < upperBorder) {
-                    return false;
-                }
-                if (gy >= lowerBorder) {
-                    return false;
-                }
-                if (game.field[gy][gx]) {
+                if (gx < leftBorder || gx >= rightBorder || gy < upperBorder || gy >= lowerBorder || game.field[gy][gx]) {
                     return false;
                 }
             }
         }
     }
-
     return true;
-
 }
 
 
@@ -254,7 +251,7 @@ function scoreRows() {
 
 function checkForGameOver() {
 
-    for (let y = 0; y < 4; y++) {
+    for (let y = 0; y < upperBorder; y++) {
 
         for (let x = 0; x < fieldWidth; x++) {
             if (game.field[y][x]) {
@@ -352,7 +349,7 @@ function applyShape() {
 
 function addPieceToField() {
 
-    while(game.y > upperBorder) {
+    while(game.y > (upperBorder - 1)) {
         if (isLocationValid()) {
             applyShape();
             game.piece = game.nextPiece;
@@ -361,8 +358,9 @@ function addPieceToField() {
             game.timeToDrop = game.dropRate;
             game.dropping = false;
             game.waitForControl = controlDelay * 3;
-            game.x = leftBorder + 2;
+            game.x = leftBorder + 3;
             game.y = upperBorder;
+            game.rotationState = 0;
             return;
         }
         game.y--;
@@ -427,8 +425,8 @@ function updateGame() {
                 game.swapedPiece = [...game.piece];
                 game.piece = [...game.nextPiece];
                 game.nextPiece = getRandomShape();
-                game.x = 4;
-                game.y = 5;
+                game.x = leftBorder + 3;
+                game.y = upperBorder;
             } else {
                 game.piece = [...game.swapedPiece];
                 game.swapedPiece = null;
@@ -454,6 +452,10 @@ function updateGame() {
     }
 
     scoreRows();
+
+    if (checkForGameOver()) {
+        performGameOver();
+    }
 
     game.leftAction = false;
     game.rightAction = false;
@@ -646,10 +648,11 @@ function restartGame() {
     game.lines = 0;
 
     game.pieceTraded = false;
+    game.rotationState = 0;
 
     game.waitForControl = controlDelay;
 
-    game.x = leftBorder + 2;
+    game.x = leftBorder + 3;
     game.y = upperBorder;
     game.dropRate = 60;
     game.dropping = false;
