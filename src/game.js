@@ -8,6 +8,8 @@ const controlDelay = 10;
 const gamePadReleased = {
     'start': 0,
     'enter': 0,
+    'rotate': 0,
+    
 }
 
 
@@ -339,6 +341,8 @@ function addPieceToField() {
     game.nextPiece = getRandomShape();
     game.pieceTraded = false;
     game.timeToDrop = game.dropRate;
+    game.dropping = false;
+    game.waitForControl = controlDelay * 3;
     game.x = 3;
     game.y = 5;
 
@@ -374,7 +378,6 @@ function updateGame() {
             game.y--;
             addPieceToField();
             game.timeToDrop = game.dropRate;
-            game.pieceTraded = false;
         }
     }
 
@@ -403,7 +406,6 @@ function updateGame() {
                 game.piece = [...game.swapedPiece];
                 game.swapedPiece = null;
             }
-        } else {
             game.pieceTraded = true;
         }
     }
@@ -672,8 +674,12 @@ function handleGamepadInput(gamepad) {
     }
 
     if (gamepad.buttons[0].pressed) { // Button A (typically)
-        game.rotateAction = true;
-        game.waitForControl = controlDelay * 2;
+        gamePadReleased.rotate = 1;
+    } else {
+        if (gamePadReleased.rotate === 1) {
+            game.rotateAction = true;
+            gamePadReleased.rotate = 0;
+        }
     }
     if (gamepad.buttons[3].pressed) {
         game.dropAction = true;
@@ -681,15 +687,15 @@ function handleGamepadInput(gamepad) {
     }
     if (gamepad.buttons[14].pressed) { // D-pad left
         game.leftAction = true;
-        game.waitForControl = controlDelay * 2;
+        game.waitForControl = controlDelay * 1;
     }
     if (gamepad.buttons[15].pressed) { // D-pad right
         game.rightAction = true;
-        game.waitForControl = controlDelay * 2;
+        game.waitForControl = controlDelay * 1;
     }
     if (gamepad.buttons[13].pressed) { // D-pad down
         game.downAction = true;
-        game.waitForControl = controlDelay * 2;
+        game.waitForControl = controlDelay * 1;
     }
 
     if (gamepad.buttons[1].pressed) { // Button B (typically)
