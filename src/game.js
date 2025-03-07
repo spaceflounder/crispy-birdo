@@ -1,7 +1,14 @@
 
 
-const fieldWidth = 10;
-const fieldHeight = 20;
+const upperBorder = 4;
+const lowerBorder = 19;
+
+const leftBorder = 4;
+const rightBorder = 14;
+
+
+const fieldWidth = 18;
+const fieldHeight = 24;
 
 const controlDelay = 10;
 
@@ -132,23 +139,19 @@ function checkThatShapeIsValid() {
             if (game.piece[y][x]) {
                 const gx = game.x + x;
                 const gy = game.y + y;
-                if (gx < 0) {
+                if (gx < leftBorder) {
                     return false;
                 }
-                if (gx > fieldWidth - 1) {
+                if (gx >= rightBorder) {
                     return false;
                 }
-                if (gy < 0) {
+                if (gy < upperBorder) {
                     return false;
                 }
-                if (gy > fieldHeight - 1) {
+                if (gy >= lowerBorder) {
                     return false;
                 }
-                try {
-                    if (game.field[gy][gx]) {
-                        return false;
-                    }
-                } catch {
+                if (game.field[gy][gx]) {
                     return false;
                 }
             }
@@ -173,7 +176,7 @@ function bringUpperRowsDownByOne(lineTo) {
 
 function lineComplete(line) {
 
-    for (let x = 0; x < fieldWidth; x++) {
+    for (let x = leftBorder; x < rightBorder; x++) {
         if (!game.field[line][x]) {
             return false;
         }
@@ -189,9 +192,9 @@ function beginClearAnimation() {
     const fieldContainer = document.getElementById('field');
     fieldContainer.textContent = '';
 
-    for (let y = 5; y < fieldHeight; y++) {
+    for (let y = upperBorder; y < fieldHeight; y++) {
         const row = document.createElement('div');
-        for (let x = 0; x < fieldWidth; x++) {
+        for (let x = leftBorder; x < rightBorder; x++) {
             if (game.field[y][x]) {
                 const block = document.createElement('div');
                 block.classList.add('block');
@@ -218,14 +221,15 @@ function beginClearAnimation() {
 function scoreRows() {
 
     let rowsCleared = 0;
+    const fullRow = 10;
  
-    for (let y = 0; y < fieldHeight; y++) {
+    for (let y = upperBorder; y < lowerBorder; y++) {
         let filledBlocks = 0;
-        for (let x = 0; x < fieldWidth; x++) {
+        for (let x = leftBorder; x < rightBorder; x++) {
             if (game.field[y][x]) {
                 filledBlocks++;
             }
-            if (filledBlocks === fieldWidth) {
+            if (filledBlocks === fullRow) {
                 game.scoreCounter += 100;
                 rowsCleared++;
                 game.animation = true;
@@ -316,35 +320,58 @@ function checkPieceLanded() {
 }
 
 
-function addPieceToField() {
+function isLocationValid() {
 
-    for (let y = 0; y <  4; y++) {
+    for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (game.piece[y][x]) {
-                try {
-                    for (let i = 0; i < 20; i++) {
-                        if (game.field[y + game.y][x + game.x]) {
-                            game.y--;
-                        } else {
-                            break;
-                        }
-                    }
-                    game.field[y + game.y][x + game.x] = game.piece[y][x];
-                } catch {
-                    continue;
+                if (game.field[y + game.y][x + game.x]) {
+                    return false;
                 }
             }
         }
     }
 
-    game.piece = game.nextPiece;
-    game.nextPiece = getRandomShape();
-    game.pieceTraded = false;
-    game.timeToDrop = game.dropRate;
-    game.dropping = false;
-    game.waitForControl = controlDelay * 3;
-    game.x = 3;
-    game.y = 5;
+    return true;
+
+}
+
+
+function applyShape() {
+
+    for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+            if (game.piece[y][x]) {
+                game.field[game.y + y][game.x + x] = game.piece[y][x];
+            }
+        }
+    }
+
+}
+
+
+function addPieceToField() {
+
+    while(game.y > upperBorder) {
+        if (isLocationValid()) {
+            applyShape();
+            game.piece = game.nextPiece;
+            game.nextPiece = getRandomShape();
+            game.pieceTraded = false;
+            game.timeToDrop = game.dropRate;
+            game.dropping = false;
+            game.waitForControl = controlDelay * 3;
+            game.x = leftBorder + 2;
+            game.y = upperBorder;
+            return;
+        }
+        game.y--;
+    }
+
+    applyShape();
+    if (checkForGameOver()) {
+        performGameOver();
+    }
 
 }
 
@@ -428,10 +455,6 @@ function updateGame() {
 
     scoreRows();
 
-    if (checkForGameOver()) {
-        performGameOver();
-    }
-
     game.leftAction = false;
     game.rightAction = false;
     game.downAction = false;
@@ -460,10 +483,10 @@ function renderField() {
         }
     }
 
-    for (let y = 5; y < fieldHeight; y++) {
+    for (let y = upperBorder; y < lowerBorder; y++) {
         const row = document.createElement('div');
         row.classList.add('row');
-        for (let x = 0; x < fieldWidth; x++) {
+        for (let x = leftBorder; x < rightBorder; x++) {
             if (buffer[y][x]) {
                 const block = document.createElement('div');
                 const index = buffer[y][x];
@@ -626,8 +649,8 @@ function restartGame() {
 
     game.waitForControl = controlDelay;
 
-    game.x = 3;
-    game.y = 5;
+    game.x = leftBorder + 2;
+    game.y = upperBorder;
     game.dropRate = 60;
     game.dropping = false;
 
