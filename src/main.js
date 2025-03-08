@@ -1,4 +1,5 @@
 import './style.css'
+import { startAudio } from "./audio.js";
 import { startGame } from "./game.js";
 
 document.querySelector('#app').innerHTML = `
@@ -8,5 +9,6 @@ document.querySelector('#app').innerHTML = `
 
 
 window.addEventListener("load", () => {
+  startAudio();
   startGame();
 });
