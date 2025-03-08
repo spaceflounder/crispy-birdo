@@ -43,7 +43,8 @@ body {
 }
 
 #field {
-  width: 600px;
+  background-color: black;
+  width: 450px;
   height: 900px;
   display: flex;
   flex-direction: column;
@@ -53,11 +54,6 @@ body {
   border-style: solid;
   border-color: black;
   border-radius: 5px;
-  filter: blur(1px);
-  -webkit-filter: blur(1px);
-  -moz-filter: blur(1px);
-  -o-filter: blur(1px);
-  -ms-filter: blur(1px);
 }
 
 .game-over {
@@ -124,6 +120,15 @@ body {
   margin: 10px;
 }
 
+
+#swaped-piece {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin: 10px;
+}
+
 .next-piece-text {
   font-size: 1.5em;
   font-weight: 500;
@@ -144,15 +149,14 @@ body {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  width: 600px;
-  height: 60px;
+  width: 450px;
+  height: 45px;
 }
 
 
 .block {
-  width: 60px;
-  height: 60px;
-  border: 3px solid transparent;
+  width: 45px;
+  height: 45px;
   border-radius: 2px;
 }
 
@@ -194,36 +198,62 @@ body {
 
 .block.red {
   background-color: #D91656;
+  -webkit-box-shadow:0px 0px 27px 9px rgba(240,240,240,0.33);
+  -moz-box-shadow: 0px 0px 27px 9px rgba(240,240,240,0.33);
+  box-shadow: 0px 0px 27px 9px rgba(240,240,240,0.33);
 }
 
 
 .block.blue {
-  background-color: #003092;
+  background-image: linear-gradient(45deg, #003092 33.33%, #363636 33.33%, #363636 50%, #003092 50%, #003092 83.33%, #363636 83.33%, #363636 100%);
+  background-size: 42.43px 42.43px;
+  border-radius: 0;
 }
 
 
 .block.yellow {
   background-color: #FFB200;
+  background-image: radial-gradient(#212121 20%, transparent 20%);
+  background-position: 0 0, 4px 4px;
+  background-size: 42px 42px;
+  filter: blur(1px);
+  -webkit-filter: blur(1px);
+  -moz-filter: blur(1px);
+  -o-filter: blur(1px);
+  -ms-filter: blur(1px);
 }
 
 
 .block.green {
   background-color: #3F4F44;
+  background-image: radial-gradient(#212121 20%, transparent 20%);
+  background-position: 0 0, 4px 4px;
+  background-size: 42px 42px;
+  filter: blur(1px);
+  -webkit-filter: blur(1px);
+  -moz-filter: blur(1px);
+  -o-filter: blur(1px);
+  -ms-filter: blur(1px);
 }
 
 
 .block.purple {
-  background-color: #640D5F;
+  border-radius: 3px;
+  background: linear-gradient(145deg, #5a0c56, #6b0e66);
+  box-shadow:  5px 5px 14px #630d5e,
+               -1px -1px 14px #650d60;
 }
 
 
 .block.orange {
   background-color: #EB5B00;
+  border-radius: 0;
 }
 
 
 .block.cyan {
   background-color: #00879E;
+  border-radius: 0;
 }
 
 

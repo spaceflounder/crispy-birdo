@@ -1,14 +1,14 @@
 
 
 const upperBorder = 4;
-const lowerBorder = 19;
+const lowerBorder = 24;
 
 const leftBorder = 4;
 const rightBorder = 14;
 
 
 const fieldWidth = 18;
-const fieldHeight = 24;
+const fieldHeight = 28;
 
 const controlDelay = 10;
 
@@ -34,32 +34,32 @@ const shapeModels = [
         '0000',
     ],
     [
-        '0100',
-        '0100',
-        '1100',
+        '1000',
+        '1110',
+        '0000',
         '0000',
     ],
     [
-        '0100',
-        '0100',
+        '0010',
+        '1110',
+        '0000',
+        '0000',
+    ],
+    [
+        '1100',
+        '1100',
+        '0000',
+        '0000',
+    ],
+    [
+        '1100',
         '0110',
         '0000',
-    ],
-    [
-        '1100',
-        '1100',
-        '0000',
         '0000',
     ],
     [
-        '1100',
         '0110',
-        '0000',
-        '0000',
-    ],
-    [
-        '0011',
-        '0110',
+        '1100',
         '0000',
         '0000',
     ]
@@ -286,11 +286,14 @@ function gameOverAnimation() {
 
 function performGameOver() {
 
-    game.animation = true;
-    gameOverAnimation();
-    setTimeout(() => {
-        game.animation = false;
-    }, 1000);   
+    if (!game.gameOver) {
+        game.gameOver = true;
+        game.animation = true;
+        gameOverAnimation();
+        setTimeout(() => {
+            game.animation = false;
+        }, 1000);       
+    }
 
 }
 
@@ -514,7 +517,9 @@ function renderNextPiece() {
     const nextPieceText = document.createElement('div');
     nextPieceText.textContent = 'next';
     const swapedPieceContainer = document.createElement('div');
+    const swapedPieceInnerContainer = document.createElement('div');
     const nextPieceContainer = document.getElementById('next-piece');
+    swapedPieceContainer.id = 'swaped-piece';
     nextPieceContainer.textContent = '';
     nextPieceText.classList.add('next-piece-text');
     const buffer = [...game.nextPiece.map(row => [...row])];
@@ -540,6 +545,7 @@ function renderNextPiece() {
 
     nextPieceContainer.appendChild(swapedPieceContainer);
     swapedPieceContainer.appendChild(swapedPieceText);
+    swapedPieceContainer.appendChild(swapedPieceInnerContainer);
 
     if (game.swapedPiece) {
         const swapedBuffer = [...game.swapedPiece.map(row => [...row])];
@@ -558,7 +564,7 @@ function renderNextPiece() {
                     row.appendChild(block);
                 }
             }
-            swapedPieceContainer.appendChild(row);
+            swapedPieceInnerContainer.appendChild(row);
         }
     }
     
