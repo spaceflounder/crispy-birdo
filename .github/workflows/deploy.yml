@@ -1,39 +1,31 @@
-name: Deploy static content to Pages
+name: Deploy Vite App to GitHub Pages
+
 on:
   push:
-    branches: ['main']
-  workflow_dispatch:
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+    branches:
+      - master  # or the branch you want to deploy from
+
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
-      - name: Set up Node
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
-          cache: 'npm'
+          node-version: 18  # or the version your project uses
+
       - name: Install dependencies
         run: npm install
-      - name: Build
+
+      - name: Build project
         run: npm run build
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: './dist'
+
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist  # The directory where your built files are located
