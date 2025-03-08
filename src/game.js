@@ -170,36 +170,70 @@ function beginClearAnimation() {
     }
 }
 
-// Scores completed rows and updates the game state
+
 function scoreRows() {
+    const linesPerLevel = 10; // Lines required to advance to the next level
     let rowsCleared = 0;
     const fullRow = 10;
-
+    const rowsToClear = []; // Track which rows need to be cleared
+  
+    // Step 1: Identify fully filled rows
     for (let y = upperBorder; y < lowerBorder; y++) {
-        let filledBlocks = 0;
-        for (let x = leftBorder; x < rightBorder; x++) {
-            if (game.field[y][x]) {
-                filledBlocks++;
-            }
-            if (filledBlocks === fullRow) {
-                game.scoreCounter += 100;
-                rowsCleared++;
-                game.animation = true;
-                setTimeout(() => {
-                    beginClearAnimation();
-                }, 5);
-                setTimeout(() => {
-                    game.animation = false;
-                    bringUpperRowsDownByOne(y);
-                }, 500);
-            }
+      let filledBlocks = 0;
+      for (let x = leftBorder; x < rightBorder; x++) {
+        if (game.field[y][x]) {
+          filledBlocks++;
         }
+      }
+  
+      if (filledBlocks === fullRow) {
+        rowsToClear.push(y); // Add the row to the list of rows to clear
+        rowsCleared++;
+      }
     }
+  
+    // Step 2: Clear the identified rows
+    if (rowsToClear.length > 0) {
+      game.scoreCounter += 100 * rowsToClear.length; // Score for cleared rows
+      game.animation = true;
+      setTimeout(() => {
+        beginClearAnimation();
+      }, 5);
+      setTimeout(() => {
+        game.animation = false;
+        for (const row of rowsToClear) {
+          bringUpperRowsDownByOne(row); // Clear each row
+        }
+      }, 500);
+    }
+  
+    // Step 3: Add bonus for clearing multiple rows at once
     if (rowsCleared === 4) {
-        game.scoreCounter += 100;
+      game.scoreCounter += 100; // Bonus for clearing 4 lines at once (Tetris)
     }
     game.lines += rowsCleared;
+
+
+  // Update lines cleared and level
+  game.linesCleared += rowsCleared;
+  const newLevel = Math.floor(game.linesCleared / linesPerLevel);
+  if (newLevel > game.level) {
+    game.level = newLevel;
+    increaseGameSpeed(); // Adjust game speed based on the new level
+  }
+
+  if (rowsCleared === 4) {
+    game.scoreCounter += 100;
+  }
 }
+
+
+function increaseGameSpeed() {
+    const baseDropRate = 60; // Frames per cell drop at Level 0
+    const levelDropRate = baseDropRate - (game.level * 5); // Decrease drop rate as level increases
+    game.dropRate = Math.max(levelDropRate, 10); // Ensure a minimum drop rate
+  }
+
 
 // Checks if the game is over (i.e., if the playable area is filled)
 function checkForGameOver() {
@@ -505,21 +539,37 @@ function renderNextPiece() {
 // Renders the player's score and the number of lines cleared
 function renderScore() {
     const scoreContainer = cachedElements.scoreContainer;
-    const div = document.createElement('div');
+    scoreContainer.textContent = ''; // Clear the container before rendering
+  
+    // Create and append the score element
+    const scoreDiv = document.createElement('div');
+    scoreDiv.textContent = `${game.score}`;
+    scoreDiv.classList.add('score-text');
+  
+    // Create and append the lines cleared element
     const linesDiv = document.createElement('div');
     const linesText = document.createElement('div');
-    linesText.textContent = 'lines';
+    linesText.textContent = 'Lines';
     linesText.classList.add('lines-text');
-    linesDiv.append(`${game.lines}`);
+    linesDiv.append(`${game.linesCleared}`);
     linesDiv.classList.add('score-text');
-    div.textContent = `${game.score}`;
-    div.classList.add('score-text');
-    scoreContainer.textContent = 'score';
-    scoreContainer.classList.add('score-text');
-    scoreContainer.appendChild(div);
+  
+    // Create and append the level element
+    const levelDiv = document.createElement('div');
+    const levelText = document.createElement('div');
+    levelText.textContent = 'Level';
+    levelText.classList.add('level-text');
+    levelDiv.append(`${game.level}`);
+    levelDiv.classList.add('score-text');
+  
+    // Append all elements to the score container
+    scoreContainer.appendChild(scoreDiv);
     scoreContainer.appendChild(linesText);
     scoreContainer.appendChild(linesDiv);
+    scoreContainer.appendChild(levelText);
+    scoreContainer.appendChild(levelDiv);
 }
+
 
 // The main rendering loop that updates and renders the game
 function renderGame() {
@@ -561,7 +611,8 @@ function restartGame() {
         swapedPiece: null,
         score: 0,
         scoreCounter: 0,
-        lines: 0,
+        linesCleared: 0,
+        level: 0,
         pieceTraded: false,
         rotationState: 0,
         waitForControl: controlDelay,
