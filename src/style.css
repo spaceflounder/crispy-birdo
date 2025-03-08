@@ -22,6 +22,18 @@ a:hover {
   color: #535bf2;
 }
 
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+
 body {
   margin: 0;
   display: flex;
@@ -32,12 +44,11 @@ body {
 }
 
 #game {
-  width: 90vw;
   height: 100%;
   background-color: #242424;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 
@@ -108,6 +119,11 @@ body {
 }
 
 #next-piece {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 450px;
+  height: 450px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -182,9 +198,10 @@ body {
 
 .block.red {
   background-color: #D91656;
-  -webkit-box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
-  -moz-box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
-  box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
+  border-radius: 1px;
+  box-shadow:
+    0 0 10px rgba(217, 22, 86, 0.5),
+    0 0 5px rgba(255, 255, 255, 0.3);
 }
 
 .block.blue {
@@ -194,27 +211,45 @@ body {
 }
 
 .block.yellow {
-  background-color: #FFB200;
-  background-image: radial-gradient(#212121 20%, transparent 20%);
-  background-position: 0 0, 4px 4px;
-  background-size: 42px 42px;
-  filter: blur(1px);
-  -webkit-filter: blur(1px);
-  -moz-filter: blur(1px);
-  -o-filter: blur(1px);
-  -ms-filter: blur(1px);
+  background: linear-gradient(145deg, #FFD700, #FFB200);
+  border-radius: 5px;
+  box-shadow:
+    0 0 8px rgba(255, 215, 0, 0.6),
+    0 0 15px rgba(255, 178, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.block.yellow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 10%, transparent 10.01%);
+  background-size: 20px 20px;
 }
 
 .block.green {
-  background-color: #3F4F44;
-  background-image: radial-gradient(#212121 20%, transparent 20%);
-  background-position: 0 0, 4px 4px;
-  background-size: 42px 42px;
-  filter: blur(1px);
-  -webkit-filter: blur(1px);
-  -moz-filter: blur(1px);
-  -o-filter: blur(1px);
-  -ms-filter: blur(1px);
+  background: linear-gradient(145deg, #4CAF50, #3F4F44);
+  border-radius: 5px;
+  box-shadow:
+    0 0 8px rgba(76, 175, 80, 0.6),
+    0 0 15px rgba(63, 79, 68, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.block.green::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 10%, transparent 10.01%);
+  background-size: 20px 20px;
 }
 
 .block.purple {

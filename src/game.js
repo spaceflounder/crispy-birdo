@@ -358,15 +358,19 @@ function updateGame() {
     if (game.tradePieceAction) {
         if (!game.pieceTraded) {
             if (!game.swapedPiece) {
+                // If no piece is held, store the current piece and get the next piece
                 game.swapedPiece = [...game.piece];
                 game.piece = [...game.nextPiece];
                 game.nextPiece = getRandomShape();
-                game.x = leftBorder + 3;
-                game.y = upperBorder;
             } else {
+                // If a piece is held, swap the current piece with the held piece
+                const temp = [...game.piece];
                 game.piece = [...game.swapedPiece];
-                game.swapedPiece = null;
+                game.swapedPiece = temp;
             }
+            // Reset the piece position
+            game.x = leftBorder + 3;
+            game.y = upperBorder;
             game.pieceTraded = true;
         }
     }
@@ -541,80 +545,72 @@ function renderGame() {
     });
 }
 
+
 // Resets the game state and initializes a new game
 function restartGame() {
     const gameContainer = document.getElementById('game');
-    game = {};
-    game.awaitNewGame = false;
-
-    game.shapes = shapeModels.map((shapeModel, index) => {
-        return shapeModel.map((row) => {
-            return row.split('').map((cell) => {
-                if (cell === '1') {
-                    return index + 1;
-                }
-                return 0;
-            });
-        });
-    });
-
-    game.field = Array.from({ length: fieldHeight }, () => {
-        return Array.from({ length: fieldWidth }, () => {
-            return false;
-        });
-    });
-
-    game.swapedPiece = null;
+    game = {
+        awaitNewGame: false,
+        shapes: shapeModels.map((shapeModel, index) =>
+            shapeModel.map((row) =>
+                row.split('').map((cell) => (cell === '1' ? index + 1 : 0))
+        )),
+        field: Array.from({ length: fieldHeight }, () =>
+            Array.from({ length: fieldWidth }, () => false)
+        ),
+        swapedPiece: null,
+        score: 0,
+        scoreCounter: 0,
+        lines: 0,
+        pieceTraded: false,
+        rotationState: 0,
+        waitForControl: controlDelay,
+        x: leftBorder + 3,
+        y: upperBorder,
+        dropRate: 60,
+        dropping: false,
+        animation: 0,
+        timeToDrop: 60, // Same as dropRate
+        leftAction: false,
+        rightAction: false,
+        downAction: false,
+        rotateAction: false,
+    };
 
     game.piece = getRandomShape();
     game.nextPiece = getRandomShape();
 
-    game.score = 0;
-    game.scoreCounter = 0;
-    game.lines = 0;
-
-    game.pieceTraded = false;
-    game.rotationState = 0;
-
-    game.waitForControl = controlDelay;
-
-    game.x = leftBorder + 3;
-    game.y = upperBorder;
-    game.dropRate = 60;
-    game.dropping = false;
-
-    game.animation = 0;
-
-    game.timeToDrop = game.dropRate;
-
-    game.leftAction = false;
-    game.rightAction = false;
-    game.downAction = false;
-    game.rotateAction = false;
-
+    // Clear the game container
     gameContainer.textContent = '';
 
-    const fieldContainer = document.createElement('div');
-    fieldContainer.id = 'field';
-    gameContainer.appendChild(fieldContainer);
+    // Create and append DOM elements
+    const fieldContainer = createElement('div', { id: 'field' });
+    const nextPieceContainer = createElement('div', { id: 'next-piece' });
+    const scoreContainer = createElement('div', { id: 'score', class: 'score-panel' });
 
-    const nextPieceContainer = document.createElement('div');
-    nextPieceContainer.id = 'next-piece';
-    gameContainer.appendChild(nextPieceContainer);
-
-    const scoreContainer = document.createElement('div');
-    scoreContainer.id = 'score';
-    scoreContainer.classList.add('score-panel');
-    gameContainer.appendChild(scoreContainer);
+    gameContainer.append(nextPieceContainer, fieldContainer, scoreContainer);
 
     // Cache DOM elements
-    cachedElements = {};
-    cachedElements.gameContainer = gameContainer;
-    cachedElements.fieldContainer = document.getElementById('field');
-    cachedElements.nextPieceContainer = document.getElementById('next-piece');
-    cachedElements.scoreContainer = document.getElementById('score');
+    cachedElements = {
+        gameContainer,
+        fieldContainer,
+        nextPieceContainer,
+        scoreContainer,
+    };
 }
 
+// Helper function to create DOM elements with attributes
+function createElement(tag, attributes = {}) {
+    const element = document.createElement(tag);
+    for (const [key, value] of Object.entries(attributes)) {
+        if (key === 'class') {
+            element.classList.add(value);
+        } else {
+            element[key] = value;
+        }
+    }
+    return element;
+}
 // Polls connected gamepads and handles input
 function pollGamepads() {
     const gamepads = navigator.getGamepads();
