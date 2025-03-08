@@ -31,7 +31,6 @@ body {
   overflow: hidden;
 }
 
-
 #game {
   width: 90vw;
   height: 100%;
@@ -72,9 +71,8 @@ body {
   font-size: 5em;
   color: #646cff;
   text-align: center;
-  -webkit-text-stroke:2px black;
+  -webkit-text-stroke: 2px black;
 }
-
 
 .start-game-text {
   position: absolute;
@@ -93,9 +91,8 @@ body {
   font-size: 5em;
   color: #646cff;
   text-align: center;
-  -webkit-text-stroke:2px black;
+  -webkit-text-stroke: 2px black;
 }
-
 
 .score-text {
   font-size: 1.5em;
@@ -105,12 +102,10 @@ body {
   margin-top: 10px;
 }
 
-
 .lines-text {
   margin-bottom: 10px;
   margin-top: 30px;
 }
-
 
 #next-piece {
   display: flex;
@@ -119,7 +114,6 @@ body {
   align-items: flex-start;
   margin: 10px;
 }
-
 
 #swaped-piece {
   display: flex;
@@ -136,14 +130,12 @@ body {
   margin-bottom: 10px;
 }
 
-
 .score-panel {
   position: absolute;
   top: 10px;
   right: 10px;
   margin-right: 20px;
 }
-
 
 .row {
   display: flex;
@@ -153,63 +145,53 @@ body {
   height: 45px;
 }
 
-
 .block {
   width: 45px;
   height: 45px;
   border-radius: 2px;
 }
 
-
 .fade-out {
   animation: fade-out 0.5s ease-in-out;
   opacity: 0;
 }
-
 
 .dim-screen {
   opacity: 0.5;
   animation: fade-half 0.75s ease-in-out;
 }
 
-
 @keyframes fade-half {
   0% { opacity: 1; }
   100% { opacity: 0.5; }
 }
-
 
 @keyframes fade-out {
   0% { opacity: 1; }
   100% { opacity: 0; }
 }
 
-
 @keyframes fade-in {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
 
-
 .block.black {
   background-color: black;
 }
 
-
 .block.red {
   background-color: #D91656;
-  -webkit-box-shadow:0px 0px 27px 9px rgba(240,240,240,0.33);
-  -moz-box-shadow: 0px 0px 27px 9px rgba(240,240,240,0.33);
-  box-shadow: 0px 0px 27px 9px rgba(240,240,240,0.33);
+  -webkit-box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
+  -moz-box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
+  box-shadow: 0px 0px 27px 9px rgba(240, 240, 240, 0.33);
 }
-
 
 .block.blue {
   background-image: linear-gradient(45deg, #003092 33.33%, #363636 33.33%, #363636 50%, #003092 50%, #003092 83.33%, #363636 83.33%, #363636 100%);
   background-size: 42.43px 42.43px;
   border-radius: 0;
 }
-
 
 .block.yellow {
   background-color: #FFB200;
@@ -223,7 +205,6 @@ body {
   -ms-filter: blur(1px);
 }
 
-
 .block.green {
   background-color: #3F4F44;
   background-image: radial-gradient(#212121 20%, transparent 20%);
@@ -236,26 +217,28 @@ body {
   -ms-filter: blur(1px);
 }
 
-
 .block.purple {
   border-radius: 3px;
   background: linear-gradient(145deg, #5a0c56, #6b0e66);
-  box-shadow:  5px 5px 14px #630d5e,
-               -1px -1px 14px #650d60;
+  box-shadow: 5px 5px 14px #630d5e, -1px -1px 14px #650d60;
 }
 
-
 .block.orange {
-  background-color: #EB5B00;
-  border-radius: 0;
+  background: linear-gradient(145deg, #EB5B00, #FF8C42);
+  border-radius: 5px;
+  box-shadow: 
+    0 0 10px rgba(235, 91, 0, 0.8),
+    0 0 20px rgba(255, 140, 66, 0.6);
 }
 
 
 .block.cyan {
-  background-color: #00879E;
-  border-radius: 0;
+  background: linear-gradient(145deg, #00879E, #00B4CC);
+  border-radius: 5px;
+  box-shadow: 
+    0 0 10px rgba(0, 135, 158, 0.8),
+    0 0 20px rgba(0, 180, 204, 0.6);
 }
-
 
 h1 {
   font-size: 3.2em;
@@ -268,7 +251,6 @@ h1 {
   padding: 2rem;
   text-align: center;
 }
-
 
 button {
   border-radius: 8px;

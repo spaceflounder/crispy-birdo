@@ -1,91 +1,53 @@
+// Game board boundaries and dimensions
+const upperBorder = 4; // Top boundary of the playable area (y-coordinate)
+const lowerBorder = 24; // Bottom boundary of the playable area (y-coordinate)
+const leftBorder = 4; // Left boundary of the playable area (x-coordinate)
+const rightBorder = 14; // Right boundary of the playable area (x-coordinate)
+const fieldWidth = 18; // Total width of the game field
+const fieldHeight = 28; // Total height of the game field
 
-
-const upperBorder = 4;
-const lowerBorder = 24;
-
-const leftBorder = 4;
-const rightBorder = 14;
-
-
-const fieldWidth = 18;
-const fieldHeight = 28;
-
+// Control input delay to prevent rapid repeated actions
 const controlDelay = 10;
 
+// Tracks the state of gamepad buttons to detect single presses
 const gamePadReleased = {
-    'start': 0,
-    'enter': 0,
-    'rotate': 0,
-    
-}
+    'start': 0, // Start button
+    'enter': 0, // Enter button
+    'rotate': 0, // Rotate button
+};
 
-
+// Tetris piece shapes represented as 4x4 grids of '1's (filled) and '0's (empty)
 const shapeModels = [
-    [
-        '1111',
-        '0000',
-        '0000',
-        '0000',
-    ],
-    [
-        '0100',
-        '1110',
-        '0000',
-        '0000',
-    ],
-    [
-        '1000',
-        '1110',
-        '0000',
-        '0000',
-    ],
-    [
-        '0010',
-        '1110',
-        '0000',
-        '0000',
-    ],
-    [
-        '1100',
-        '1100',
-        '0000',
-        '0000',
-    ],
-    [
-        '1100',
-        '0110',
-        '0000',
-        '0000',
-    ],
-    [
-        '0110',
-        '1100',
-        '0000',
-        '0000',
-    ]
+    ['1111', '0000', '0000', '0000'], // I-piece
+    ['0100', '1110', '0000', '0000'], // T-piece
+    ['1000', '1110', '0000', '0000'], // L-piece
+    ['0010', '1110', '0000', '0000'], // J-piece
+    ['1100', '1100', '0000', '0000'], // O-piece
+    ['1100', '0110', '0000', '0000'], // S-piece
+    ['0110', '1100', '0000', '0000'], // Z-piece
 ];
 
-
+// Colors corresponding to each Tetris piece type
 const colors = [
-    'black',
-    'red',
-    'blue',
-    'yellow',
-    'green',
-    'purple',
-    'orange',
-    'cyan'
+    'black', // Empty cell
+    'red',    // Color for piece 1
+    'blue',   // Color for piece 2
+    'yellow', // Color for piece 3
+    'green',  // Color for piece 4
+    'purple', // Color for piece 5
+    'orange', // Color for piece 6
+    'cyan',   // Color for piece 7
 ];
 
-
+// Wall kick data for rotating Tetris pieces
 const wallKickData = {
-    JLSTZ: [
+    JLSTZ: [ // Wall kicks for J, L, S, T, and Z pieces
         [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]], // 0->R
         [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],    // R->2
         [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],   // 2->L
         [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]]  // L->0
     ],
-    I: [
+    I: [ // Wall kicks for the I-piece
         [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],  // 0->R
         [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],  // R->2
         [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],  // 2->L
@@ -93,25 +55,27 @@ const wallKickData = {
     ]
 };
 
+// Cached DOM elements for performance optimization
+let cachedElements = {};
 
+// Global game state object
 let game = {};
 
-
+// Returns a random integer between min (inclusive) and max (exclusive)
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
+// Returns a random Tetris piece from the shapes array
 function getRandomShape() {
     const index = getRandomInt(0, game.shapes.length);
     return game.shapes[index];
 }
 
-
-
+// Rotates the current piece and applies wall kicks if necessary
 function rotateShape() {
     const originalPiece = game.piece;
-    const rotatedPiece = originalPiece[0].map((_, index) => 
+    const rotatedPiece = originalPiece[0].map((_, index) =>
         originalPiece.map(row => row[index]).reverse()
     );
 
@@ -143,7 +107,7 @@ function rotateShape() {
     game.rotationState = previousRotationState;
 }
 
-
+// Checks if the current piece is in a valid position on the grid
 function checkThatShapeIsValid() {
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
@@ -159,34 +123,28 @@ function checkThatShapeIsValid() {
     return true;
 }
 
-
+// Moves all rows above `lineTo` down by one row
 function bringUpperRowsDownByOne(lineTo) {
-
     for (let y = lineTo; y > 0; y--) {
         for (let x = 0; x < fieldWidth; x++) {
             game.field[y][x] = game.field[y - 1][x];
         }
     }
-
 }
 
-
+// Checks if a row is fully filled and should be cleared
 function lineComplete(line) {
-
     for (let x = leftBorder; x < rightBorder; x++) {
         if (!game.field[line][x]) {
             return false;
         }
     }
-
     return true;
-
 }
 
-
+// Starts the animation for clearing completed lines
 function beginClearAnimation() {
-
-    const fieldContainer = document.getElementById('field');
+    const fieldContainer = cachedElements.fieldContainer;
     fieldContainer.textContent = '';
 
     for (let y = upperBorder; y < fieldHeight; y++) {
@@ -210,16 +168,13 @@ function beginClearAnimation() {
         }
         fieldContainer.appendChild(row);
     }
-
-
 }
 
-
+// Scores completed rows and updates the game state
 function scoreRows() {
-
     let rowsCleared = 0;
     const fullRow = 10;
- 
+
     for (let y = upperBorder; y < lowerBorder; y++) {
         let filledBlocks = 0;
         for (let x = leftBorder; x < rightBorder; x++) {
@@ -244,30 +199,23 @@ function scoreRows() {
         game.scoreCounter += 100;
     }
     game.lines += rowsCleared;
-
 }
 
-
-
+// Checks if the game is over (i.e., if the playable area is filled)
 function checkForGameOver() {
-
     for (let y = 0; y < upperBorder; y++) {
-
         for (let x = 0; x < fieldWidth; x++) {
             if (game.field[y][x]) {
                 return true;
             }
         }
-
     }
-
     return false;
-
 }
 
-
+// Displays the game-over animation and message
 function gameOverAnimation() {
-
+    const gameContainer = cachedElements.gameContainer;
     const h1 = document.createElement('h3');
     h1.textContent = 'Game Over';
     const h3 = document.createElement('h4');
@@ -280,27 +228,22 @@ function gameOverAnimation() {
     gameOverContainer.appendChild(h1);
     gameOverContainer.appendChild(h3);
     document.getElementById('game').appendChild(gameOverContainer);
-
 }
 
-
+// Handles the game-over state
 function performGameOver() {
-
     if (!game.gameOver) {
         game.gameOver = true;
         game.animation = true;
         gameOverAnimation();
         setTimeout(() => {
             game.animation = false;
-        }, 1000);       
+        }, 1000);
     }
-
 }
 
-
+// Checks if the current piece has landed on the grid
 function checkPieceLanded() {
-
-
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (game.piece[y][x]) {
@@ -314,14 +257,11 @@ function checkPieceLanded() {
             }
         }
     }
-
     return false;
-
 }
 
-
+// Checks if the current piece is in a valid location
 function isLocationValid() {
-
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (game.piece[y][x]) {
@@ -331,14 +271,11 @@ function isLocationValid() {
             }
         }
     }
-
     return true;
-
 }
 
-
+// Adds the current piece to the game board
 function applyShape() {
-
     for (let y = 0; y < 4; y++) {
         for (let x = 0; x < 4; x++) {
             if (game.piece[y][x]) {
@@ -346,13 +283,11 @@ function applyShape() {
             }
         }
     }
-
 }
 
-
+// Places the current piece on the board and spawns a new piece
 function addPieceToField() {
-
-    while(game.y > (upperBorder - 1)) {
+    while (game.y > (upperBorder - 1)) {
         if (isLocationValid()) {
             applyShape();
             game.piece = game.nextPiece;
@@ -373,12 +308,10 @@ function addPieceToField() {
     if (checkForGameOver()) {
         performGameOver();
     }
-
 }
 
-
+// Updates the game state based on user input and game logic
 function updateGame() {
-
     if (game.leftAction) {
         game.x--;
         if (!checkThatShapeIsValid()) {
@@ -466,13 +399,11 @@ function updateGame() {
     game.rotateAction = false;
     game.tradePieceAction = false;
     game.dropAction = false;
-    
 }
 
-
+// Renders the game board and the current piece
 function renderField() {
-
-    const fieldContainer = document.getElementById('field');
+    const fieldContainer = cachedElements.fieldContainer;
     fieldContainer.innerHTML = '';
     const buffer = [...game.field.map(row => [...row])];
 
@@ -505,20 +436,18 @@ function renderField() {
         }
         fieldContainer.appendChild(row);
     }
-    
 }
 
-
+// Renders the next piece and the held piece (if any)
 function renderNextPiece() {
-
     const swapedPieceText = document.createElement('div');
-    swapedPieceText.textContent = 'saved';
+    swapedPieceText.textContent = 'hold';
     swapedPieceText.classList.add('next-piece-text');
     const nextPieceText = document.createElement('div');
     nextPieceText.textContent = 'next';
     const swapedPieceContainer = document.createElement('div');
     const swapedPieceInnerContainer = document.createElement('div');
-    const nextPieceContainer = document.getElementById('next-piece');
+    const nextPieceContainer = cachedElements.nextPieceContainer;
     swapedPieceContainer.id = 'swaped-piece';
     nextPieceContainer.textContent = '';
     nextPieceText.classList.add('next-piece-text');
@@ -567,13 +496,11 @@ function renderNextPiece() {
             swapedPieceInnerContainer.appendChild(row);
         }
     }
-    
 }
 
-
+// Renders the player's score and the number of lines cleared
 function renderScore() {
-    
-    const scoreContainer = document.getElementById('score');
+    const scoreContainer = cachedElements.scoreContainer;
     const div = document.createElement('div');
     const linesDiv = document.createElement('div');
     const linesText = document.createElement('div');
@@ -588,19 +515,15 @@ function renderScore() {
     scoreContainer.appendChild(div);
     scoreContainer.appendChild(linesText);
     scoreContainer.appendChild(linesDiv);
-
 }
 
-
+// The main rendering loop that updates and renders the game
 function renderGame() {
-
     if (!game.pauseAction && !game.animation) {
-
         updateGame();
         renderField();
         renderNextPiece();
         renderScore();
-
     }
 
     if (game.scoreCounter > 0) {
@@ -616,13 +539,10 @@ function renderGame() {
             pollGamepads();
         }
     });
-
 }
 
-
+// Resets the game state and initializes a new game
 function restartGame() {
-
-
     const gameContainer = document.getElementById('game');
     game = {};
     game.awaitNewGame = false;
@@ -687,9 +607,15 @@ function restartGame() {
     scoreContainer.classList.add('score-panel');
     gameContainer.appendChild(scoreContainer);
 
+    // Cache DOM elements
+    cachedElements = {};
+    cachedElements.gameContainer = gameContainer;
+    cachedElements.fieldContainer = document.getElementById('field');
+    cachedElements.nextPieceContainer = document.getElementById('next-piece');
+    cachedElements.scoreContainer = document.getElementById('score');
 }
 
-
+// Polls connected gamepads and handles input
 function pollGamepads() {
     const gamepads = navigator.getGamepads();
     for (const gamepad of gamepads) {
@@ -699,8 +625,8 @@ function pollGamepads() {
     }
 }
 
+// Handles input from a connected gamepad
 function handleGamepadInput(gamepad) {
-
     if (game.waitForControl > 0) {
         return;
     }
@@ -765,7 +691,7 @@ function handleGamepadInput(gamepad) {
     }
 }
 
-
+// Displays a message prompting the player to press Enter to start the game
 function awaitEnterPress() {
     const gameContainer = document.getElementById('game');
     const textContainer = document.createElement('div');
@@ -776,7 +702,7 @@ function awaitEnterPress() {
     gameContainer.appendChild(textContainer);
 }
 
-
+// Starts the game after the player presses Enter
 function beginGame() {
     game.awaitStartGame = false;
     const gameStartText = document.getElementById('start-game-text');
@@ -784,15 +710,14 @@ function beginGame() {
     game.animation = false;
 }
 
-
+// Initializes the game and sets up event listeners
 export function startGame() {
-
-    // wait until enter is pressed before starting game
-
     restartGame();
     awaitEnterPress();
     renderGame();
     game.animation = true;
+
+    // Keyboard event listeners
     window.addEventListener('keydown', (event) => {
         event.preventDefault();
         if (game.waitForControl > 0) {
@@ -837,6 +762,4 @@ export function startGame() {
                 break;
         }
     });
-
 }
-
