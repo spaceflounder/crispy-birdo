@@ -678,7 +678,13 @@ function handleGamepadInput(gamepad) {
         return;
     }
 
-    if (gamepad.buttons[0].pressed) { // Button A (typically)
+    for (let i = 0; i < gamepad.buttons.length; i++) {
+        if (gamepad.buttons[i].pressed) {
+            console.log(`Button ${i} pressed`);
+        }
+    }
+
+    if (gamepad.buttons[0].pressed || gamepad.buttons[1].pressed || gamepad.buttons[2].pressed || gamepad.buttons[3].pressed) {
         gamePadReleased.rotate = 1;
     } else {
         if (gamePadReleased.rotate === 1) {
@@ -686,7 +692,7 @@ function handleGamepadInput(gamepad) {
             gamePadReleased.rotate = 0;
         }
     }
-    if (gamepad.buttons[3].pressed) {
+    if (gamepad.buttons[5].pressed || gamepad.buttons[7].pressed) {
         game.dropAction = true;
         game.waitForControl = controlDelay * 2;
     }
@@ -703,7 +709,7 @@ function handleGamepadInput(gamepad) {
         game.waitForControl = controlDelay * 1;
     }
 
-    if (gamepad.buttons[1].pressed) { // Button B (typically)
+    if (gamepad.buttons[4].pressed || gamepad.buttons[6].pressed) { // Button B (typically)
         game.tradePieceAction = true;
         game.waitForControl = controlDelay * 2;
     }
